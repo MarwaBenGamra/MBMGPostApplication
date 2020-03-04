@@ -2,7 +2,6 @@ package com.example.marwabengamraapp.UI;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
@@ -14,17 +13,13 @@ import com.example.marwabengamraapp.Model.PostModel;
 import com.example.marwabengamraapp.R;
 import com.example.marwabengamraapp.data.OnItemClickListener;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnItemClickListener {
 
     PostViewModel postViewModel;
     PostAdapter postsAdapter = new PostAdapter();
-    List<PostModel> postModels = new ArrayList<>();
-    private String EXTRA_URL_IMAGE = "URL";
-    private String EXTRA_NAME = "NAME";
-    private String EXTRA_DESC = "DESC";
+    private String EXTRA_ID = "ID";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +42,6 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
             @Override
             public void onChanged(List<PostModel> postModels) {
                 postsAdapter.setList(postModels);
-
             }
         });
 
@@ -60,10 +54,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     public void onItemClicked(int position) {
         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
         PostModel currentItem = postsAdapter.getList().get(position);
-        Log.e("cureent pos", ""+currentItem);
-        intent.putExtra(EXTRA_URL_IMAGE, currentItem.getApp_icon_url());
-        intent.putExtra(EXTRA_NAME, currentItem.getName());
-        intent.putExtra(EXTRA_DESC, currentItem.getShort_desc());
+
+        intent.putExtra(EXTRA_ID, currentItem.getApp_id());
         startActivity(intent);
     }
 }

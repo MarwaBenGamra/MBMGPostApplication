@@ -1,16 +1,34 @@
 package com.example.marwabengamraapp.UI;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ImageView;
+import android.os.Handler;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.viewpager.widget.ViewPager;
 
+import com.example.marwabengamraapp.Model.PostModel;
 import com.example.marwabengamraapp.R;
-import com.squareup.picasso.Picasso;
+import com.viewpagerindicator.CirclePageIndicator;
 
-public class DetailActivity extends Activity {
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class DetailActivity extends AppCompatActivity {
+
+    private static ViewPager mPager;
+    private static int currentPage = 0;
+    private static int NUM_PAGES = 0;
+    PostViewModel postViewModel;
+    TextView longDescTV;
+    TextView nameTV;
+    RatingBar ratingBar;
+    private List<PostModel.ImageModel> imageModelArrayList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,21 +36,85 @@ public class DetailActivity extends Activity {
         setContentView(R.layout.detail_activity);
 
         Intent i = getIntent();
-        String image_Uri = i.getStringExtra("URL");
-        String name = i.getStringExtra("NAME");
-        String desc = i.getStringExtra("DESC");
+        String mAppID = i.getStringExtra("ID");
 
-        ImageView image = findViewById(R.id.imageView);
-        TextView descTV = findViewById(R.id.textView_desc);
-        TextView nameTV = findViewById(R.id.textview_name);
+        ratingBar = findViewById(R.id.ratingBar);
+        nameTV = findViewById(R.id.textview_name);
+        longDescTV = findViewById(R.id.textview_long_desc);
 
 
-        nameTV.setText(name);
-        descTV.setText(desc);
+        postViewModel = new ViewModelProvider(this).get(PostViewModel.class);
 
-        Picasso.get().load(image_Uri).fit().centerInside().into(image);
+        postViewModel.getPostDetail(mAppID);
 
+        postViewModel.detailPostMutuableLiveData.observe(this, new Observer<PostModel>() {
+            @Override
+            public void onChanged(PostModel postModel) {
+                longDescTV.setText(postModel.getLong_desc());
+                nameTV.setText(postModel.getName());
+                ratingBar.setRating(postModel.getTotal_ratings());
 
+                imageModelArrayList = postModel.getApp_images();
+                initSlideShow();
+
+            }
+        });
+
+    }
+
+    private void initSlideShow() {
+
+        mPager = findViewById(R.id.pager);
+        mPager.setAdapter(new SlidingImage_Adapter(DetailActivity.this, imageModelArrayList));
+
+        CirclePageIndicator indicator = findViewById(R.id.indicator);
+
+        indicator.setViewPager(mPager);
+
+        final float density = getResources().getDisplayMetrics().density;
+
+        //Set circle indicator radius
+        indicator.setRadius(5 * density);
+
+        NUM_PAGES = imageModelArrayList.size();
+
+        // Auto start of viewpager
+        final Handler handler = new Handler();
+        final Runnable Update = new Runnable() {
+            public void run() {
+                if (currentPage == NUM_PAGES) {
+                    currentPage = 0;
+                }
+                mPager.setCurrentItem(currentPage++, true);
+            }
+        };
+        Timer swipeTimer = new Timer();
+        swipeTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(Update);
+            }
+        }, 3000, 3000);
+
+        // Pager listener over indicator
+        indicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+
+            @Override
+            public void onPageSelected(int position) {
+                currentPage = position;
+
+            }
+
+            @Override
+            public void onPageScrolled(int pos, float arg1, int arg2) {
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int pos) {
+
+            }
+        });
 
     }
 
